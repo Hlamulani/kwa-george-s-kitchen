@@ -63,3 +63,15 @@ class OrderItem(db.Model):
     unit_price = db.Column(db.Numeric(8, 2), nullable=False)  # price at time of order
 
     menu_item = db.relationship("MenuItem")
+
+
+class Delivery(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey("order.id"), unique=True, nullable=False)
+    driver_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    assigned_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    picked_up_at = db.Column(db.DateTime)
+    delivered_at = db.Column(db.DateTime)
+
+    order = db.relationship("Order", backref=db.backref("delivery", uselist=False))
+    driver = db.relationship("User", backref="deliveries")

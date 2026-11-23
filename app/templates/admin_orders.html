@@ -32,21 +32,35 @@
       <td class="text-capitalize">
         {{ order.order_type }}
         {% if order.delivery_address %}<br><small class="text-muted">{{ order.delivery_address }}</small>{% endif %}
+        {% if order.delivery %}<br><small class="text-success">Driver: {{ order.delivery.driver.name }}</small>{% endif %}
       </td>
       <td>R{{ "%.2f"|format(order.total) }}</td>
       <td><span class="badge bg-secondary">{{ order.status }}</span></td>
-      <td class="d-flex gap-2">
-        {% if nxt %}
-        <form method="post" action="{{ url_for('admin.advance', order_id=order.id) }}">
-          <button class="btn btn-sm btn-success">→ {{ nxt }}</button>
-        </form>
-        {% endif %}
-        {% if order.status not in ["Completed", "Delivered", "Cancelled"] %}
-        <form method="post" action="{{ url_for('admin.cancel', order_id=order.id) }}"
-              onsubmit="return confirm('Cancel order #{{ order.id }}?')">
-          <button class="btn btn-sm btn-outline-danger">Cancel</button>
-        </form>
-        {% endif %}
+      <td>
+        <div class="d-flex flex-wrap gap-2">
+          {% if order.order_type == "delivery" and order.status not in ["Completed", "Delivered", "Cancelled"] %}
+          <form method="post" action="{{ url_for('admin.assign_driver', order_id=order.id) }}" class="d-flex gap-1">
+            <select name="driver_id" class="form-select form-select-sm" required>
+              <option value="">Driver…</option>
+              {% for d in drivers %}
+              <option value="{{ d.id }}" {{ 'selected' if order.delivery and order.delivery.driver_id == d.id }}>{{ d.name }}</option>
+              {% endfor %}
+            </select>
+            <button class="btn btn-sm btn-outline-primary">Assign</button>
+          </form>
+          {% endif %}
+          {% if nxt %}
+          <form method="post" action="{{ url_for('admin.advance', order_id=order.id) }}">
+            <button class="btn btn-sm btn-success">→ {{ nxt }}</button>
+          </form>
+          {% endif %}
+          {% if order.status not in ["Completed", "Delivered", "Cancelled"] %}
+          <form method="post" action="{{ url_for('admin.cancel', order_id=order.id) }}"
+                onsubmit="return confirm('Cancel order #{{ order.id }}?')">
+            <button class="btn btn-sm btn-outline-danger">Cancel</button>
+          </form>
+          {% endif %}
+        </div>
       </td>
     </tr>
     {% endfor %}

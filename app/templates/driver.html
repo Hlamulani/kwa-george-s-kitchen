@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}My Deliveries{% endblock %}
+{% block content %}
+<h1 class="h3 mb-4">My Deliveries</h1>
+
+{% if active %}
+<div class="row g-3">
+  {% for d in active %}
+  {% set o = d.order %}
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header d-flex justify-content-between">
+        <strong>Order #{{ o.id }}</strong>
+        <span class="badge bg-secondary">{{ o.status }}</span>
+      </div>
+      <div class="card-body">
+        <p class="mb-1"><strong>Customer:</strong> {{ o.user.name }}</p>
+        <p class="mb-1"><strong>Phone:</strong> <a href="tel:{{ o.phone }}">{{ o.phone }}</a></p>
+        <p class="mb-2"><strong>Address:</strong> {{ o.delivery_address }}</p>
+        <ul class="small text-muted mb-2">
+          {% for oi in o.items %}
+          <li>{{ oi.quantity }} × {{ oi.menu_item.name }}</li>
+          {% endfor %}
+        </ul>
+        <p class="fw-bold mb-0">Collect: R{{ "%.2f"|format(o.total) }} (cash)</p>
+      </div>
+      <div class="card-footer bg-white">
+        {% if o.status in ["Preparing", "Out for delivery"] %}
+        <form method="post" action="{{ url_for('driver.advance', delivery_id=d.id) }}">
+          <button class="btn w-100 {{ 'btn-dark' if o.status == 'Preparing' else 'btn-success' }}">
+            {{ 'Picked up – out for delivery' if o.status == 'Preparing' else 'Mark as delivered' }}
+          </button>
+        </form>
+        {% else %}
+        <button class="btn btn-outline-secondary w-100" disabled>Waiting for the kitchen ({{ o.status }})</button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p>No active deliveries right now.</p>
+{% endif %}
+
+{% if done %}
+<h2 class="h5 mt-5">Recent</h2>
+<table class="table bg-white small">
+  <thead><tr><th>#</th><th>Address</th><th>Status</th><th>Delivered</th></tr></thead>
+  <tbody>
+    {% for d in done %}
+    <tr>
+      <td>{{ d.order.id }}</td>
+      <td>{{ d.order.delivery_address }}</td>
+      <td>{{ d.order.status }}</td>
+      <td>{{ d.delivered_at.strftime("%d %b, %H:%M") if d.delivered_at else "—" }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}

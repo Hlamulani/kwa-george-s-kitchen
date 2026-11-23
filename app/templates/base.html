@@ -13,6 +13,9 @@
           Cart {% if cart_count %}<span class="badge bg-warning text-dark">{{ cart_count }}</span>{% endif %}
         </a>
         {% if current_user.is_authenticated %}
+        {% if current_user.role == "driver" %}
+          <a class="nav-link text-info" href="{{ url_for('driver.deliveries') }}">My Deliveries</a>
+        {% endif %}
         {% if current_user.role == "staff" %}
           <a class="nav-link text-warning" href="{{ url_for('admin.orders') }}">Staff</a>
         {% endif %}

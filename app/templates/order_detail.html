@@ -6,6 +6,9 @@
 </h1>
 <p class="mb-1"><strong>Type:</strong> <span class="text-capitalize">{{ order.order_type }}</span></p>
 <p class="mb-1"><strong>Phone:</strong> {{ order.phone }}</p>
+{% if order.delivery %}
+<p class="mb-1"><strong>Driver:</strong> {{ order.delivery.driver.name }}</p>
+{% endif %}
 {% if order.delivery_address %}
 <p class="mb-3"><strong>Address:</strong> {{ order.delivery_address }}</p>
 {% endif %}

@@ -5,7 +5,9 @@ from flask import (
 )
 from flask_login import login_required, current_user
 from .. import db
-from ..models import Order, MenuItem, Category
+from ..models import Order, MenuItem, Category, Delivery, User
+from datetime import datetime, timezone
+from functools import wraps
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -32,6 +34,14 @@ def next_status(order):
     index = flow.index(order.status)
     return flow[index + 1] if index + 1 < len(flow) else None
 
+def set_status(order, new_status):
+    order.status = new_status
+    if order.delivery:
+        now = datetime.now(timezone.utc)
+        if new_status == "Out for delivery":
+            order.delivery.picked_up_at = now
+        elif new_status == "Delivered":
+            order.delivery.delivered_at = now
 
 # ---------- Orders ----------
 
@@ -47,8 +57,10 @@ def orders():
     rows = [(o, next_status(o)) for o in query.order_by(Order.created_at.asc()).all()]
     all_statuses = ["Placed", "Confirmed", "Preparing", "Ready for pickup",
                     "Out for delivery", "Completed", "Delivered", "Cancelled"]
+    drivers = User.query.filter_by(role="driver").order_by(User.name).all()
     return render_template(
-        "admin_orders.html", rows=rows, current=status, all_statuses=all_statuses
+        "admin_orders.html", rows=rows, current=status,
+        all_statuses=all_statuses, drivers=drivers,
     )
 
 
@@ -57,10 +69,31 @@ def orders():
 def advance(order_id):
     order = db.session.get(Order, order_id) or abort(404)
     new_status = next_status(order)
-    if new_status:
-        order.status = new_status
+    if new_status == "Out for delivery" and not order.delivery:
+        flash("Assign a driver before sending this order out.", "danger")
+    elif new_status:
+        set_status(order, new_status)
         db.session.commit()
         flash(f"Order #{order.id} is now: {new_status}.", "success")
+    return redirect(request.referrer or url_for("admin.orders"))
+
+
+@admin_bp.route("/orders/<int:order_id>/assign", methods=["POST"])
+@staff_required
+def assign_driver(order_id):
+    order = db.session.get(Order, order_id) or abort(404)
+    driver = db.session.get(User, request.form.get("driver_id", type=int) or 0)
+    if order.order_type != "delivery" or order.status in FINAL:
+        flash("Drivers can only be assigned to active delivery orders.", "danger")
+    elif not driver or driver.role != "driver":
+        flash("Choose a valid driver.", "danger")
+    else:
+        if order.delivery:
+            order.delivery.driver_id = driver.id
+        else:
+            db.session.add(Delivery(order_id=order.id, driver_id=driver.id))
+        db.session.commit()
+        flash(f"{driver.name} assigned to order #{order.id}.", "success")
     return redirect(request.referrer or url_for("admin.orders"))
 
 
