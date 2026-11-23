@@ -27,6 +27,7 @@
       <div class="card-footer bg-white">
         {% if o.status in ["Preparing", "Out for delivery"] %}
         <form method="post" action="{{ url_for('driver.advance', delivery_id=d.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button class="btn w-100 {{ 'btn-dark' if o.status == 'Preparing' else 'btn-success' }}">
             {{ 'Picked up – out for delivery' if o.status == 'Preparing' else 'Mark as delivered' }}
           </button>

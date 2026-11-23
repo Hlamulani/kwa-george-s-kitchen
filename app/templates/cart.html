@@ -16,6 +16,7 @@
         <td>R{{ "%.2f"|format(line.item.price) }}</td>
         <td>
           <form method="post" action="{{ url_for('cart.update', item_id=line.item.id) }}" class="d-flex gap-2">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="number" name="quantity" value="{{ line.qty }}" min="0" max="20" class="form-control form-control-sm">
             <button class="btn btn-sm btn-outline-secondary">Update</button>
           </form>
@@ -23,6 +24,7 @@
         <td>R{{ "%.2f"|format(line.line_total) }}</td>
         <td>
           <form method="post" action="{{ url_for('cart.remove', item_id=line.item.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button class="btn btn-sm btn-outline-danger">Remove</button>
           </form>
         </td>

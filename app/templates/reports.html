@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Staff · Reports{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Reports</h1>
+  <div class="d-flex gap-2">
+    {% for d in [7, 30, 90] %}
+    <a href="{{ url_for('reports.index', days=d) }}"
+       class="btn btn-sm {{ 'btn-dark' if days == d else 'btn-outline-dark' }}">Last {{ d }} days</a>
+    {% endfor %}
+    <a href="{{ url_for('admin.orders') }}" class="btn btn-sm btn-outline-secondary">Orders</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card shadow-sm"><div class="card-body">
+      <div class="text-muted small">Orders</div>
+      <div class="h3 mb-0">{{ orders_count }}</div>
+    </div></div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow-sm"><div class="card-body">
+      <div class="text-muted small">Revenue</div>
+      <div class="h3 mb-0">R{{ "%.2f"|format(revenue) }}</div>
+    </div></div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow-sm"><div class="card-body">
+      <div class="text-muted small">Average order</div>
+      <div class="h3 mb-0">R{{ "%.2f"|format(avg_order) }}</div>
+    </div></div>
+  </div>
+</div>
+
+{% if orders_count %}
+<div class="row g-4">
+  <div class="col-12">
+    <div class="card shadow-sm"><div class="card-body">
+      <h2 class="h6">Revenue per day (R)</h2>
+      <canvas id="dailyChart" height="90"></canvas>
+    </div></div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm"><div class="card-body">
+      <h2 class="h6">Top 5 items (quantity sold)</h2>
+      <canvas id="topChart"></canvas>
+    </div></div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm"><div class="card-body">
+      <h2 class="h6">Orders by hour of day</h2>
+      <canvas id="hourChart"></canvas>
+    </div></div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm"><div class="card-body">
+      <h2 class="h6">Pickup vs delivery</h2>
+      <canvas id="typeChart" style="max-height:280px"></canvas>
+    </div></div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm"><div class="card-body">
+      <h2 class="h6">Best sellers</h2>
+      <table class="table table-sm mb-0">
+        <thead><tr><th>Item</th><th>Qty</th><th>Revenue</th></tr></thead>
+        <tbody>
+          {% for item in top_items %}
+          <tr><td>{{ item.name }}</td><td>{{ item.qty }}</td><td>R{{ "%.2f"|format(item.revenue) }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div></div>
+  </div>
+</div>
+{% else %}
+<p>No orders in this period yet.</p>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  const dark = "#212529";
+
+  new Chart(document.getElementById("dailyChart"), {
+    type: "line",
+    data: {
+      labels: {{ daily_labels|tojson }},
+      datasets: [{ label: "Revenue (R)", data: {{ daily_revenue|tojson }},
+                   borderColor: dark, backgroundColor: "rgba(33,37,41,0.1)", fill: true, tension: 0.25 }]
+    },
+    options: { plugins: { legend: { display: false } } }
+  });
+
+  new Chart(document.getElementById("topChart"), {
+    type: "bar",
+    data: {
+      labels: {{ top_labels|tojson }},
+      datasets: [{ label: "Sold", data: {{ top_qty|tojson }}, backgroundColor: dark }]
+    },
+    options: { indexAxis: "y", plugins: { legend: { display: false } } }
+  });
+
+  new Chart(document.getElementById("hourChart"), {
+    type: "bar",
+    data: {
+      labels: {{ hour_labels|tojson }},
+      datasets: [{ label: "Orders", data: {{ hour_orders|tojson }}, backgroundColor: "#6c757d" }]
+    },
+    options: { plugins: { legend: { display: false } } }
+  });
+
+  new Chart(document.getElementById("typeChart"), {
+    type: "doughnut",
+    data: {
+      labels: {{ type_labels|tojson }},
+      datasets: [{ data: {{ type_orders|tojson }}, backgroundColor: [dark, "#adb5bd"] }]
+    }
+  });
+</script>
+{% endblock %}

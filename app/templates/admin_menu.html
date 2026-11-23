@@ -10,6 +10,7 @@
 </div>
 
 <form method="post" action="{{ url_for('admin.new_category') }}" class="row g-2 mb-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="col-auto">
     <input type="text" name="name" class="form-control form-control-sm" placeholder="New category name" required>
   </div>
@@ -33,6 +34,7 @@
       <td class="d-flex gap-2 justify-content-end">
         <a href="{{ url_for('admin.edit_item', item_id=item.id) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
         <form method="post" action="{{ url_for('admin.toggle', item_id=item.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button class="btn btn-sm btn-outline-dark">{{ 'Hide' if item.available else 'Show' }}</button>
         </form>
       </td>

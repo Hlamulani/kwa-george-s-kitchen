@@ -3,7 +3,10 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h1 class="h3 mb-0">Orders</h1>
-  <a href="{{ url_for('admin.menu') }}" class="btn btn-outline-dark btn-sm">Manage menu</a>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('reports.index') }}" class="btn btn-outline-dark btn-sm">Reports</a>
+    <a href="{{ url_for('admin.menu') }}" class="btn btn-outline-dark btn-sm">Manage menu</a>
+  </div>
 </div>
 
 <div class="mb-3 d-flex flex-wrap gap-2">
@@ -40,6 +43,7 @@
         <div class="d-flex flex-wrap gap-2">
           {% if order.order_type == "delivery" and order.status not in ["Completed", "Delivered", "Cancelled"] %}
           <form method="post" action="{{ url_for('admin.assign_driver', order_id=order.id) }}" class="d-flex gap-1">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <select name="driver_id" class="form-select form-select-sm" required>
               <option value="">Driver…</option>
               {% for d in drivers %}
@@ -51,12 +55,14 @@
           {% endif %}
           {% if nxt %}
           <form method="post" action="{{ url_for('admin.advance', order_id=order.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button class="btn btn-sm btn-success">→ {{ nxt }}</button>
           </form>
           {% endif %}
           {% if order.status not in ["Completed", "Delivered", "Cancelled"] %}
           <form method="post" action="{{ url_for('admin.cancel', order_id=order.id) }}"
                 onsubmit="return confirm('Cancel order #{{ order.id }}?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button class="btn btn-sm btn-outline-danger">Cancel</button>
           </form>
           {% endif %}

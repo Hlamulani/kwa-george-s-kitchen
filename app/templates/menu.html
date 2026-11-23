@@ -16,6 +16,7 @@
           <div class="card-footer bg-white d-flex justify-content-between align-items-center">
             <span class="fw-bold">R{{ "%.2f"|format(item.price) }}</span>
             <form method="post" action="{{ url_for('cart.add', item_id=item.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button class="btn btn-sm btn-dark">Add to cart</button>
             </form>
           </div>
