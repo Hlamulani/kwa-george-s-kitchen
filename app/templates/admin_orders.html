@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Staff · Orders{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Orders</h1>
+  <a href="{{ url_for('admin.menu') }}" class="btn btn-outline-dark btn-sm">Manage menu</a>
+</div>
+
+<div class="mb-3 d-flex flex-wrap gap-2">
+  <a href="{{ url_for('admin.orders', status='active') }}"
+     class="btn btn-sm {{ 'btn-dark' if current == 'active' else 'btn-outline-dark' }}">Active</a>
+  <a href="{{ url_for('admin.orders', status='all') }}"
+     class="btn btn-sm {{ 'btn-dark' if current == 'all' else 'btn-outline-dark' }}">All</a>
+  {% for s in all_statuses %}
+  <a href="{{ url_for('admin.orders', status=s) }}"
+     class="btn btn-sm {{ 'btn-dark' if current == s else 'btn-outline-secondary' }}">{{ s }}</a>
+  {% endfor %}
+</div>
+
+{% if rows %}
+<div class="table-responsive">
+<table class="table bg-white align-middle">
+  <thead>
+    <tr><th>#</th><th>Time</th><th>Customer</th><th>Type</th><th>Total</th><th>Status</th><th>Actions</th></tr>
+  </thead>
+  <tbody>
+    {% for order, nxt in rows %}
+    <tr>
+      <td><a href="{{ url_for('cart.order_detail', order_id=order.id) }}">{{ order.id }}</a></td>
+      <td>{{ order.created_at.strftime("%d %b, %H:%M") }}</td>
+      <td>{{ order.user.name }}<br><small class="text-muted">{{ order.phone }}</small></td>
+      <td class="text-capitalize">
+        {{ order.order_type }}
+        {% if order.delivery_address %}<br><small class="text-muted">{{ order.delivery_address }}</small>{% endif %}
+      </td>
+      <td>R{{ "%.2f"|format(order.total) }}</td>
+      <td><span class="badge bg-secondary">{{ order.status }}</span></td>
+      <td class="d-flex gap-2">
+        {% if nxt %}
+        <form method="post" action="{{ url_for('admin.advance', order_id=order.id) }}">
+          <button class="btn btn-sm btn-success">→ {{ nxt }}</button>
+        </form>
+        {% endif %}
+        {% if order.status not in ["Completed", "Delivered", "Cancelled"] %}
+        <form method="post" action="{{ url_for('admin.cancel', order_id=order.id) }}"
+              onsubmit="return confirm('Cancel order #{{ order.id }}?')">
+          <button class="btn btn-sm btn-outline-danger">Cancel</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p>No orders here.</p>
+{% endif %}
+{% endblock %}

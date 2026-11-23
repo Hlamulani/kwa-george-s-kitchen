@@ -13,6 +13,9 @@
           Cart {% if cart_count %}<span class="badge bg-warning text-dark">{{ cart_count }}</span>{% endif %}
         </a>
         {% if current_user.is_authenticated %}
+        {% if current_user.role == "staff" %}
+          <a class="nav-link text-warning" href="{{ url_for('admin.orders') }}">Staff</a>
+        {% endif %}
           <a class="nav-link" href="{{ url_for('cart.my_orders') }}">My Orders</a>
           <span class="navbar-text mx-3">Hi, {{ current_user.name }}</span>
           <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
