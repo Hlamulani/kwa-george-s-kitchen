@@ -1,7 +1,7 @@
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db, login_manager
-
+from datetime import datetime, timezone
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -35,3 +35,31 @@ class MenuItem(db.Model):
     price = db.Column(db.Numeric(8, 2), nullable=False)
     available = db.Column(db.Boolean, default=True)
     category_id = db.Column(db.Integer, db.ForeignKey("category.id"), nullable=False)
+
+class Order(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    order_type = db.Column(db.String(20), nullable=False)  # pickup / delivery
+    status = db.Column(db.String(30), default="Placed")
+    phone = db.Column(db.String(30), nullable=False)
+    delivery_address = db.Column(db.String(255))
+    delivery_fee = db.Column(db.Numeric(8, 2), default=0)
+    total = db.Column(db.Numeric(10, 2), nullable=False)
+    created_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc)
+    )
+
+    user = db.relationship("User", backref="orders")
+    items = db.relationship(
+        "OrderItem", backref="order", cascade="all, delete-orphan"
+    )
+
+
+class OrderItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey("order.id"), nullable=False)
+    menu_item_id = db.Column(db.Integer, db.ForeignKey("menu_item.id"), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    unit_price = db.Column(db.Numeric(8, 2), nullable=False)  # price at time of order
+
+    menu_item = db.relationship("MenuItem")

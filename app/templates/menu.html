@@ -13,8 +13,11 @@
             <h5 class="card-title">{{ item.name }}</h5>
             <p class="card-text text-muted">{{ item.description }}</p>
           </div>
-          <div class="card-footer bg-white fw-bold">
-            R{{ "%.2f"|format(item.price) }}
+          <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+            <span class="fw-bold">R{{ "%.2f"|format(item.price) }}</span>
+            <form method="post" action="{{ url_for('cart.add', item_id=item.id) }}">
+              <button class="btn btn-sm btn-dark">Add to cart</button>
+            </form>
           </div>
         </div>
       </div>
