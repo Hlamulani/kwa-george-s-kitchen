@@ -33,11 +33,17 @@ def create_app(config_class=Config):
     app.register_blueprint(reports_bp)
 
     @app.context_processor
-    def inject_cart_count():
-        return {"cart_count": sum(session.get("cart", {}).values())}
+    def inject_globals():
+        return {
+            "cart_count": sum(session.get("cart", {}).values()),
+            "demo_mode": app.config.get("DEMO_MODE", False),
+        }
 
     with app.app_context():
         from . import models  # make sure all tables are registered
         db.create_all()
+        if app.config.get("DEMO_MODE"):
+            from .demo import seed_demo
+            seed_demo()
 
     return app
